@@ -9,6 +9,7 @@ public class ClientApp {
     MyClient client = new MyClient();
     client.startConnection("localhost",8080);
     client.sendMessage("Hi");
+    client.sendMessage("file file1.txt");
     client.sendMessage("exit");
     //client.stopConnection();
   }

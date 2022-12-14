@@ -1,6 +1,9 @@
 package ua.hillelit.lms;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -14,6 +17,7 @@ public class MyClient {
   private Socket clientSocket;
   private PrintWriter out;
   private BufferedReader in;
+  private static DataOutputStream fileWriter;
 
   public void startConnection(String ip, int port) {
     try {
@@ -21,6 +25,8 @@ public class MyClient {
       System.out.println("CLIENT is started at socket[" + port + "]");
       out = new PrintWriter(clientSocket.getOutputStream(), true);
       in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+
+      fileWriter = new DataOutputStream(clientSocket.getOutputStream());
 
       Thread thread = new Thread(this::readFromServer);
       thread.start();
@@ -33,7 +39,7 @@ public class MyClient {
 
   private void readFromServer() {
     String inputLine;
-    while (true){
+    while (true) {
       try {
         if ((inputLine = in.readLine()) == null) {
           break;
@@ -48,13 +54,35 @@ public class MyClient {
   public void sendMessage(String msg) {
     try {
       out.println(msg);
+      String path;
+      if (msg.startsWith("file")) {
+        path = msg.replaceFirst("file", "").trim();
+        sendFile(path);
+      }
     } catch (Exception e) {
       e.printStackTrace();
     }
   }
 
+  private static void sendFile(String path) throws Exception {
+    int bytes;
+    File file = new File(path);
+    FileInputStream fileIn = new FileInputStream(file);
+
+    // send file size
+    fileWriter.writeLong(file.length());
+    // break file into chunks
+    byte[] buffer = new byte[4 * 1024];
+    while ((bytes = fileIn.read(buffer)) != -1) {
+      fileWriter.write(buffer, 0, bytes);
+      fileWriter.flush();
+    }
+    fileIn.close();
+  }
+
   public void stopConnection() {
     try {
+      fileWriter.close();
       in.close();
       out.close();
       clientSocket.close();
