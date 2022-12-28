@@ -1,17 +1,19 @@
 package ua.hillelit.lms;
 
 /**
- * @author Dmytro Trotsenko on 13.12.2022
+ * {@link ClientApp} is a main class.
+ *
+ * @author Dmytro Trotsenko on 26.12.2022
  */
 public class ClientApp {
 
   public static void main(String[] args) {
-    MyClient client = new MyClient();
+    Client client = new Client();
     client.startConnection("localhost",8080);
     client.sendMessage("Hi");
-    client.sendMessage("file file1.txt");
-    client.sendMessage("exit");
-    //client.stopConnection();
+    client.sendMessage("-file src/main/resources/file1.txt");
+    client.sendMessage("-exit");
+    //client.stop();
   }
 
 }
